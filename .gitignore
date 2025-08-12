@@ -1,0 +1,29 @@
+﻿# Logs
+logs
+*.log
+npm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Node.js
+node_modules
+
+# TypeScript cache
+*.tsbuildinfo
+
+### Node Patch ###
+# Serverless Webpack directories
+.webpack/
