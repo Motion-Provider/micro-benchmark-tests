@@ -7,13 +7,13 @@ import { performance } from "perf_hooks";
  * @param {function} fn - The function to run.
  * @param {string} label - A label to display in the log.
  */
-const benchmark: BenchmarkFn = (label, times, fn) => {
+const benchmark: BenchmarkFn = (logger = true, label, times, fn) => {
   const start = performance.now();
   for (let i = 0; i < times; i++) fn();
-
   const end = performance.now();
   const duration = (end - start).toFixed(3);
-  console.log(`${label}: ${duration}ms`);
+  if (logger)
+    console.log(`${label} took: ${duration}ms | executed ${times} times`);
 };
 
 export default benchmark;

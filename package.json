@@ -4,7 +4,8 @@
   "description": "Covering A/B micro-benchmark tests across Motion Provider components to find the most suit usage in terms of bundling and performance.",
   "type": "module",
   "scripts": {
-    "test": "tsx ./tests/index.ts"
+    "test:core": "tsx ./tests/index.ts",
+    "test:dom": "tsx ./tests/dom/index.tsx"
   },
   "dependencies": {
     "@types/react": "^19.1.10",
