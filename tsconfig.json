@@ -41,8 +41,8 @@
     "moduleDetection": "force",
     "skipLibCheck": true,
     "paths": {
-      "@/*": ["./src/*"],
-      "#/*": ["./tests/*"]
+      "@/*": ["src/*"],
+      "#/*": ["tests/*"]
     },
     "baseUrl": "."
   },
