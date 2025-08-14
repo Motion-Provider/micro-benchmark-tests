@@ -1,19 +1,25 @@
-﻿import type { BenchmarkFn } from "@/interfaces/index.ts";
-import { performance } from "perf_hooks";
+﻿import { hrNowMs } from "@/utils/hrNow.ts";
+import type { BenchmarkFn } from "@/interfaces/index.ts";
 
 /**
- * Runs a given function `times` amount of times and logs the duration.
- * @param {number} times - The amount of times to run the function.
- * @param {function} fn - The function to run.
- * @param {string} label - A label to display in the log.
+ * Run `fn` `times` times and return total elapsed time in ms.
+ * Supports both sync and async `fn`.
  */
-const benchmark: BenchmarkFn = (logger = true, label, times, fn) => {
-  const start = performance.now();
-  for (let i = 0; i < times; i++) fn();
-  const end = performance.now();
-  const duration = (end - start).toFixed(3);
-  if (logger)
-    console.log(`${label} took: ${duration}ms | executed ${times} times`);
+const benchmark: BenchmarkFn = async (
+  times: number,
+  fn: () => void | Promise<void>
+) => {
+  const start = hrNowMs();
+
+  for (let i = 0; i < times; i++) {
+    const maybePromise = fn();
+    if (maybePromise && typeof (maybePromise as any).then === "function") {
+      await maybePromise;
+    }
+  }
+
+  const end = hrNowMs();
+  return end - start;
 };
 
 export default benchmark;
