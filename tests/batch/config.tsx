@@ -1,17 +1,19 @@
 ﻿import testsConfig from "@/tests.config.ts";
-import RenderMInitials from "#/phases/render-m-initials.tsx";
 import RenderMFromTree from "#/phases/render-m-from-tree.tsx";
-import RenderMotionInitials from "#/phases/render-motion-initials.tsx";
 import RenderMotionFromTree from "#/phases/render-motion-from-tree.tsx";
 import type { BatchConfig, TestConfigurations } from "@/interfaces/index.ts";
 
+/**
+ * @type BatchConfig
+ * @description Batch configuration for benchmarking server-side rendering speed
+ * @see tests.config.ts
+ * Warning: Always add key value to each JSX component that you want to benchmark!!!
+ */
 export default {
   ...(testsConfig as TestConfigurations),
   files: [
     <RenderMFromTree key="render-m-from-tree" />,
     <RenderMotionFromTree key="render-motion-from-tree" />,
-    <RenderMotionInitials key="render-motion-initials" />,
-    <RenderMInitials key="render-m-initials" />,
   ],
   testName: "Benchmarking server-side rendering speed",
   testDescription:
