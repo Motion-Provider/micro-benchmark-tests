@@ -4,6 +4,35 @@ Covering A/B micro-benchmark tests across Motion Provider components to find the
 
 **Main goal** is reducing the bundle size across **Motion Provider** components by replacing a huge `import { motion } from "motion/react"` package with `import * as m from "motion/react-m";` or other relevant _motion_ component.
 
+## Installation
+
+**Initialize a new project and fork the repo**
+
+```bash
+mkdir motion-provider-tests
+cd motion-provider-tests
+git clone https://github.com/Motion-Provider/micro-benchmark-tests.git
+```
+
+**Install dependencies**
+
+```bash
+npm install
+```
+
+**Add any react component to the project that you want to benchmark**
+
+```bash
+cd ./tests/phases
+touch my-component.tsx
+```
+
+**Start the batch tests**
+
+```bash
+npm run test:batch
+```
+
 ## Phases
 
 1. **A/B benchmark**: _initials_ (motion/react-m vs motion/react)
