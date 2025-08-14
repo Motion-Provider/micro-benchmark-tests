@@ -1,52 +1,76 @@
-﻿import type { IterateProps } from "@/interfaces/index.ts";
+﻿import { sleep } from "@/utils/sleep.ts";
+import computeStats from "@/utils/computeStats.ts";
+import { hrNowMs } from "@/utils/hrNow.ts";
+import type { BenchmarkStats, IterateProps } from "@/interfaces/index.ts";
 
 /**
- * Run fn repeatedly with intervalMs delay between calls,
- * totalIterations times.
- * Measures execution time of each invocation and at the end,
- * calls onComplete with stats: average and stddev of run times.
- * @param {IterateProps} props - The props.
- * @param {number} props.totalIterations - The total number of iterations.
- * @param {number} props.intervalMs - The interval between calls in ms.
- * @param {() => Promise<void>} props.fn - The function to run.
- * @param {(stats: BenchmarkStats) => void} [props.onComplete] - The function to call with stats.
- * @returns {Promise<void>} - A promise that resolves when all iterations are done.
+ * Runs a given function `totalIterations` amount of times, waits for `intervalMs` milliseconds between each iteration,
+ * and logs the duration of each iteration. If `warmup` is true (default), it will run the function
+ * `warmupIterations` amount of times before starting the benchmark. If `warmupIterations` is not provided,
+ * it will run the function 10% of the `totalIterations` amount of times.
+ *
+ * @param {object} props                      The props to pass to the function.
+ * @param {number} props.totalIterations      The amount of times to run the function.
+ * @param {number} [props.intervalMs=0]       The amount of milliseconds to wait between each iteration.
+ * @param {function} props.fn                 The function to run.
+ * @param {function} [props.onComplete]       A function to call when the benchmark is complete.
+ * @param {number} [props.warmupIterations]   The amount of times to run the function before starting the benchmark.
+ * @param {boolean} [props.warmup=true]       Whether to run the function before starting the benchmark.
+ * @returns {Promise<BenchmarkStats | null>}  The benchmark stats or null if the function throws an error.
  */
 export async function Iterate({
   totalIterations,
-  intervalMs,
+  intervalMs = 0,
   fn,
   onComplete,
-}: IterateProps): Promise<void> {
+  warmupIterations,
+  warmup = true,
+}: IterateProps & {
+  warmupIterations?: number;
+  warmup?: boolean;
+}): Promise<BenchmarkStats | null> {
   const runs: number[] = [];
-  let count = 0;
 
-  return new Promise((resolve, reject) => {
-    const interval = setInterval(async () => {
-      const start = performance.now();
+  if (warmup) {
+    const warmups =
+      typeof warmupIterations === "number"
+        ? Math.max(0, Math.floor(warmupIterations))
+        : Math.max(10, Math.floor(totalIterations * 0.1));
 
-      try {
-        await Promise.resolve(fn());
-      } catch (e) {
-        clearInterval(interval);
-        reject(e);
-        return;
-      }
+    for (let i = 0; i < warmups; i++) {
+      const maybePromise = fn();
+      if (maybePromise && typeof (maybePromise as any).then === "function")
+        await maybePromise;
+    }
 
-      const end = performance.now();
-      runs.push(end - start);
+    /**
+     * todo: add --expose-gc to node scripts
+     */
+    try {
+      if (typeof (globalThis as any).gc === "function")
+        (globalThis as any).gc();
+    } catch {
+      /**** ignore ****/
+    }
+  }
 
-      count++;
-      if (count >= totalIterations) {
-        clearInterval(interval);
-        const average = runs.reduce((a, b) => a + b, 0) / runs.length;
-        const stddev = Math.sqrt(
-          runs.map((x) => (x - average) ** 2).reduce((a, b) => a + b, 0) /
-            runs.length
-        );
-        if (onComplete) onComplete({ runs, average, stddev });
-        resolve();
-      }
-    }, intervalMs);
-  });
+  for (let i = 0; i < totalIterations; i++) {
+    const start = hrNowMs();
+    const maybePromise = fn();
+    if (maybePromise && typeof (maybePromise as any).then === "function") {
+      await maybePromise;
+    }
+    const end = hrNowMs();
+    runs.push(end - start);
+
+    if (i < totalIterations - 1 && intervalMs > 0) {
+      await sleep(intervalMs);
+    }
+  }
+
+  const stats = computeStats(runs);
+
+  if (onComplete) onComplete(stats!);
+
+  return stats;
 }
